@@ -29,7 +29,7 @@ class HttpUtils {
   static const String DELETE = 'delete';
 
   /// request method
-  static Future<Map> request (
+  static Future<String> request (
       String url,
       { data, method }) async {
 
