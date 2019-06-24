@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'dart:async';
+import 'package:smart_home/utils/encrypt_utils.dart';
 
 /*
  * 封装 restful 请求
@@ -17,7 +20,7 @@ class HttpUtils {
   static Dio dio;
 
   /// default options
-  static const String API_PREFIX = 'http://a-box.com.cn/abox/index.php';
+  static const String API_PREFIX = 'http://a-box.com.cn/abox/index.php/';
   static const int CONNECT_TIMEOUT = 10000;
   static const int RECEIVE_TIMEOUT = 3000;
 
@@ -45,11 +48,27 @@ class HttpUtils {
       }
     });
 
+    /// 添加sign 时间戳验证
+    Map<String,String> signMap = EncryptUtils.generateSign(data, url);
+    data.addAll(signMap);
+
     /// 打印请求相关信息：请求地址、请求方式、请求参数
     print('请求地址：【' + method + '  ' + url + '】');
     print('请求参数：' + data.toString());
 
     Dio dio = createInstance();
+//    //设置代理
+//    DefaultHttpClientAdapter adapter = dio.httpClientAdapter;
+//    adapter.onHttpClientCreate = (HttpClient client) {
+//      if(client == null) {
+//        client = HttpClient();
+//      }
+//      client.findProxy = (url) {
+//        return HttpClient.findProxyFromEnvironment(url, environment: {"http_proxy": 'http://192.168.100.173:6666',});
+//      };
+//      return client;
+//    };
+    dio.options.contentType=ContentType.parse("application/x-www-form-urlencoded");
     var result;
 
     try {
