@@ -26,6 +26,9 @@ dependencies:
   dio: ^2.1.0
   crypto: ^2.0.6
   convert: ^2.1.1
+  fluttertoast: ^2.1.1
+  division: ^0.5.0
+  shared_preferences: ^0.4.2
 
 dev_dependencies:
   flutter_test:
@@ -42,6 +45,21 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+      - assets/login/mima.png
+      - assets/login/yonghu.png
+      - assets/loginSuccess/home.png
+      - assets/loginSuccess/room.png
+      - assets/loginSuccess/my.png
+      - assets/loginSuccess/logo.png
+      - assets/Home/zldd.png
+      - assets/Home/diaodeng.png
+      - assets/Home/cz.png
+      - assets/Home/menci.png
+      - assets/Home/wenshidu.png
+      - assets/Home/kaisix.png
+      - assets/Home/guan.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
