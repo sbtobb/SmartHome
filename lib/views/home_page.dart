@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:division/division.dart';
+import 'package:smart_home/data/protocol/result_bool.dart';
+import 'package:smart_home/data/protocol/result_data.dart';
+import 'package:smart_home/data/repository/api_repository.dart';
+import 'package:provide/provide.dart';
+import 'package:smart_home/model/sensor_data.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class Home extends StatelessWidget {
   @override
@@ -16,28 +22,18 @@ class Home extends StatelessWidget {
   }
 }
 
-class HomePage extends StatefulWidget {
-  @override
-  _HomePageState createState() {
-    // TODO: implement createState
-    return _HomePageState();
-  }
-}
+class HomePage extends StatelessWidget {
+  ApiRepository apiRepository = ApiRepository.instance;
+  BuildContext _context;
 
-class _HomePageState extends State<HomePage> {
-  double value = 0.0;
-  bool check = false;
-  bool checkcz = false;
-  bool checkmenci = false;
+  @override
   Widget build(BuildContext context) {
+    this._context = context;
     return Scaffold(
         backgroundColor: Color.fromARGB(50, 200, 200, 200),
-        body: SingleChildScrollView(
-          physics: NeverScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[_title(), _homeTop(), _equipment(), _snow()],
-          ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[_title(), _homeTop(), _equipment(), _snow()],
         ));
   }
 
@@ -56,8 +52,7 @@ class _HomePageState extends State<HomePage> {
               ..width(300)
               ..height(150)
               ..elevation(50.0)
-              ..backgroundImage(
-                  path: "assets/loginSuccess/logo.png", fit: BoxFit.fill)
+              ..backgroundImage(path: "assets/Home/logo.png", fit: BoxFit.fill)
               ..borderRadius(all: 10.0)
               ..align('top'),
             child: Row(children: <Widget>[_weather(), _temperature()])));
@@ -65,26 +60,39 @@ class _HomePageState extends State<HomePage> {
 
   _weather() {
     return Padding(
-        padding: EdgeInsets.fromLTRB(20, 0, 0, 80),
-        child: Row(
-          children: <Widget>[
-            Division(
-                child:
-                    Icon(Icons.wb_sunny, size: 32, color: Color(0xFF42526F))),
-            Text("晴", style: TextStyle(fontSize: 32.0, color: Colors.black54))
-          ],
-        ));
+        padding: EdgeInsets.fromLTRB(20, 20, 0, 0),
+        child: Column(children: <Widget>[
+          Row(
+            children: <Widget>[
+              Division(
+                  child:
+                      Icon(Icons.wb_sunny, size: 32, color: Color(0xFF42526F))),
+              Text("晴", style: TextStyle(fontSize: 32.0, color: Colors.black54))
+            ],
+          ),
+          Text("室内湿度", style: TextStyle(fontSize: 10.0, color: Colors.black54)),
+          Provide<SensorData>(
+            builder: (context, child, sensorData) {
+              return Text("${sensorData.humidity}%",
+                  style: TextStyle(fontSize: 18.0, color: Colors.lightGreen));
+            },
+          )
+        ]));
   }
 
   _temperature() {
     return Padding(
-        padding: EdgeInsets.fromLTRB(140, 20, 0, 0),
+        padding: EdgeInsets.fromLTRB(120, 20, 0, 0),
         child: Column(
           children: <Widget>[
-            Text("24.6℃",
-                style: TextStyle(fontSize: 24.0, color: Colors.lightGreen)),
             Text("室内温度",
-                style: TextStyle(fontSize: 10.0, color: Colors.black54))
+                style: TextStyle(fontSize: 10.0, color: Colors.black54)),
+            Provide<SensorData>(
+              builder: (context, child, sensorData) {
+                return Text("${sensorData.temperature}℃",
+                    style: TextStyle(fontSize: 24.0, color: Colors.lightGreen));
+              },
+            ),
           ],
         ));
   }
@@ -97,137 +105,113 @@ class _HomePageState extends State<HomePage> {
   }
 
   _snow() {
-    return Container(
-      padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
-      height: 250,
-      child: GridView.count(
-        crossAxisCount: 2,
-        mainAxisSpacing: 10.0,
-        crossAxisSpacing: 10.0,
-        padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
-        childAspectRatio: 1.3,
-        children: <Widget>[
-          Division(
-            style: StyleClass()
-              ..backgroundColor(Color.fromARGB(255, 255, 255, 255))
-              ..borderRadius(all: 10.0),
-            child: Column(
-              children: <Widget>[
-                Image.asset("assets/Home/diaodeng.png"),
-                Text("客厅吊灯"),
-                Switch(
-                  value: this.check,
-                  onChanged: (bool val) {
-                    this.setState(() {
-                      this.check = !this.check;
-                    });
-                  },
-                )
-              ],
-            ),
-          ),
-          Division(
-            style: StyleClass()
-              ..backgroundColor(Color.fromARGB(255, 255, 255, 255))
-              ..borderRadius(all: 10.0),
-            child: Column(
-              children: <Widget>[
-                Image.asset("assets/Home/zldd.png"),
-                Text("走廊吊灯"),
-                Container(
-                    padding: EdgeInsets.fromLTRB(0, 7.5, 0, 0),
-                    width: 100,
-                    child: Slider(
-                      value: value,
-                      inactiveColor: Colors.black12,
-                      label: 'value: $value',
-                      min: 0.0,
-                      max: 100.0,
-                      divisions: 5,
-                      activeColor: Colors.lightGreen,
-                      onChanged: (double) {
-                        setState(() {
-                          value = double.roundToDouble();
-                        });
-                      },
-                    ))
-              ],
-            ),
-          ),
-          Division(
-            style: StyleClass()
-              ..backgroundColor(Color.fromARGB(255, 255, 255, 255))
-              ..borderRadius(all: 10.0),
-            child: Column(
-              children: <Widget>[
-                Image.asset("assets/Home/cz.png"),
-                Text("插座"),
-                Switch(
-                  value: this.checkcz,
-                  onChanged: (bool val) {
-                    this.setState(() {
-                      this.checkcz = !this.checkcz;
-                    });
-                  },
-                )
-              ],
-            ),
-          ),
-          Division(
-            style: StyleClass()
-              ..backgroundColor(Color.fromARGB(255, 255, 255, 255))
-              ..borderRadius(all: 10.0),
-            child: Column(
-              children: <Widget>[
-                Image.asset("assets/Home/menci.png"),
-                Text("智能门磁"),
-                Switch(
-                  value: this.checkmenci,
-                  onChanged: (bool val) {
-                    this.setState(() {
-                      this.checkmenci = !this.checkmenci;
-                    });
-                  },
-                )
-              ],
-            ),
-          ),
-          Division(
-            style: StyleClass()
-              ..backgroundColor(Color.fromARGB(255, 255, 255, 255))
-              ..borderRadius(all: 10.0),
-            child: Column(
-              children: <Widget>[
-                Image.asset("assets/Home/wenshidu.png"),
-                Text("温湿度监测"),
-                IconButton(icon: Icon(Icons.add), onPressed: () {})
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+    return Expanded(
+        flex: 1,
+        child: Container(
+          padding: EdgeInsets.fromLTRB(25, 8, 25, 0),
+          height: 250,
+          child: GridView.count(
+              crossAxisCount: 2,
+              mainAxisSpacing: 10.0,
+              crossAxisSpacing: 10.0,
+              childAspectRatio: 1.18,
+              children: _gridViews()),
+        ));
   }
 
-  _ctest() {
-    return Stack(
-      children: <Widget>[
-        Container(
-          width: 100,
-          height: 100,
-          color: Colors.red,
+  _gridViews() {
+    return <Widget>[
+      Division(
+        style: StyleClass()
+          ..backgroundColor(Color.fromARGB(255, 255, 255, 255))
+          ..borderRadius(all: 10.0),
+        child: Padding(
+            padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
+            child: Column(
+              children: <Widget>[
+                SvgImage.asset("assets/Home/台灯.svg", Size(48.0, 48.0)),
+                Text("台灯"),
+                Provide<SensorData>(
+                  builder: (context, child, sensorData) {
+                    return Switch(
+                      value: sensorData.socketA,
+                      onChanged: (bool val) {
+                        sensorData.changeSocketA();
+                      },
+                    );
+                  },
+                )
+              ],
+            )),
+      ),
+      Division(
+          style: StyleClass()
+            ..backgroundColor(Color.fromARGB(255, 255, 255, 255))
+            ..borderRadius(all: 10.0),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
+            child: Column(
+              children: <Widget>[
+                SvgImage.asset("assets/Home/插座.svg", Size(48.0, 48.0)),
+                Text("插座"),
+                Provide<SensorData>(
+                  builder: (context, child, sensorData) {
+                    return Switch(
+                      value: sensorData.socketB,
+                      onChanged: (bool val) {
+                        sensorData.changeSocketB();
+                      },
+                    );
+                  },
+                )
+              ],
+            ),
+          )),
+      Division(
+        style: StyleClass()
+          ..backgroundColor(Color.fromARGB(255, 255, 255, 255))
+          ..borderRadius(all: 10.0),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
+          child: Column(
+            children: <Widget>[
+              SvgImage.asset("assets/Home/门磁.svg", Size(48.0, 48.0)),
+              Text("智能门磁"),
+              Provide<SensorData>(
+                builder: (context, child, sensorData) {
+                  if (sensorData.door) {
+                    return Text('状态:开');
+                  }
+                  return Text('状态:关');
+                },
+              )
+            ],
+          ),
         ),
-        Container(
-          width: 90,
-          height: 90,
-          color: Colors.green,
-        ),
-        Container(
-          width: 80,
-          height: 80,
-          color: Colors.blue,
-        ),
-      ],
-    );
+      ),
+      Division(
+          style: StyleClass()
+            ..backgroundColor(Color.fromARGB(255, 255, 255, 255))
+            ..borderRadius(all: 10.0),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
+            child: Column(
+              children: <Widget>[
+                SvgImage.asset("assets/Home/电视.svg", Size(48.0, 48.0)),
+                Text("电视"),
+                Provide<SensorData>(
+                  builder: (context, child, sensorData) {
+                    return Switch(
+                      value: sensorData.socketC,
+                      onChanged: (bool val) {
+                        sensorData.changeSocketC();
+                      },
+                    );
+                  },
+                )
+              ],
+            ),
+          )),
+    ];
   }
 }
