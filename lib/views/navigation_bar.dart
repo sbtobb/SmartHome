@@ -55,6 +55,17 @@ class _NavigationBarPage extends State<NavigationBarPage> {
     });
   }
 
+  void initState() {
+    super.initState();
+
+    _initData();
+  }
+
+  _initData() async {
+    await Future.delayed(const Duration(seconds: 1),
+        () => Provide.value<SensorData>(context).initState());
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
         bottomNavigationBar: BottomNavigationBar(
