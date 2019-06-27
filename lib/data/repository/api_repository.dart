@@ -4,6 +4,7 @@ import '../api/apis.dart';
 import '../protocol/result_data.dart';
 import '../protocol/result_bool.dart';
 import 'package:smart_home/utils/encrypt_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class ApiRepository {
@@ -38,13 +39,14 @@ class ApiRepository {
     final jsonMap = json.decode(result ?? this.error_str);
     ResultData resultData = ResultData.fromJson(jsonMap);
 
-    print(resultData.code);
     if(resultData.code == "00000"){
       //登陆成功
       //解析token
       this.token = resultData.data['token'];
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString("token", this.token);
     }
-    return resultData;
+    return ResultBool.fromResultData(resultData);
   }
 
   /// 验证Token是否有效
@@ -68,6 +70,7 @@ class ApiRepository {
       return false;
     }
     if(resultData.data["status"] == "1"){
+      this.token = token ?? this.token;
       return true;
     }
     return false;
