@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:core';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:smart_home/utils/time_utils.dart';
@@ -14,7 +15,8 @@ class EncryptUtils {
       }
       dataStr += "$key:$value,";
     });
-    String tmpEncry = EncryptUtils.generateMd5("${dataStr}url:${url},time:$currentTimeStr,secret:00000");
+    String encodeUri = Uri.encodeFull(url);
+    String tmpEncry = EncryptUtils.generateMd5("${dataStr}url:${encodeUri},time:$currentTimeStr,secret:00000");
 
     int var21 = currentTimes % 9;
     int var9 = currentTimes % 7;
