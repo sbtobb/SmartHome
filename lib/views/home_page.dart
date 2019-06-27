@@ -121,97 +121,78 @@ class HomePage extends StatelessWidget {
 
   _gridViews() {
     return <Widget>[
-      Division(
-        style: StyleClass()
-          ..backgroundColor(Color.fromARGB(255, 255, 255, 255))
-          ..borderRadius(all: 10.0),
-        child: Padding(
-            padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
-            child: Column(
-              children: <Widget>[
-                SvgImage.asset("assets/Home/台灯.svg", Size(48.0, 48.0)),
-                Text("台灯"),
-                Provide<SensorData>(
-                  builder: (context, child, sensorData) {
-                    return Switch(
-                      value: sensorData.socketA,
-                      onChanged: (bool val) {
-                        sensorData.changeSocketA();
-                      },
-                    );
-                  },
-                )
-              ],
-            )),
-      ),
-      Division(
-          style: StyleClass()
-            ..backgroundColor(Color.fromARGB(255, 255, 255, 255))
-            ..borderRadius(all: 10.0),
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
-            child: Column(
-              children: <Widget>[
-                SvgImage.asset("assets/Home/插座.svg", Size(48.0, 48.0)),
-                Text("插座"),
-                Provide<SensorData>(
-                  builder: (context, child, sensorData) {
-                    return Switch(
-                      value: sensorData.socketB,
-                      onChanged: (bool val) {
-                        sensorData.changeSocketB();
-                      },
-                    );
-                  },
-                )
-              ],
-            ),
-          )),
-      Division(
-        style: StyleClass()
-          ..backgroundColor(Color.fromARGB(255, 255, 255, 255))
-          ..borderRadius(all: 10.0),
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
-          child: Column(
-            children: <Widget>[
-              SvgImage.asset("assets/Home/门磁.svg", Size(48.0, 48.0)),
-              Text("智能门磁"),
-              Provide<SensorData>(
-                builder: (context, child, sensorData) {
-                  if (sensorData.door) {
-                    return Text('状态:开');
-                  }
-                  return Text('状态:关');
+      _myDivision(
+        <Widget>[
+          SvgImage.asset("assets/Home/台灯.svg", Size(48.0, 48.0)),
+          Text("台灯"),
+          Provide<SensorData>(
+            builder: (context, child, sensorData) {
+              return Switch(
+                value: sensorData.socketA,
+                onChanged: (bool val) {
+                  sensorData.changeSocketA();
                 },
-              )
-            ],
-          ),
-        ),
+              );
+            },
+          )
+        ],
       ),
-      Division(
-          style: StyleClass()
-            ..backgroundColor(Color.fromARGB(255, 255, 255, 255))
-            ..borderRadius(all: 10.0),
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
-            child: Column(
-              children: <Widget>[
-                SvgImage.asset("assets/Home/电视.svg", Size(48.0, 48.0)),
-                Text("电视"),
-                Provide<SensorData>(
-                  builder: (context, child, sensorData) {
-                    return Switch(
-                      value: sensorData.socketC,
-                      onChanged: (bool val) {
-                        sensorData.changeSocketC();
-                      },
-                    );
-                  },
-                )
-              ],
-            ),
-          )),
+      _myDivision(
+        <Widget>[
+          SvgImage.asset("assets/Home/插座.svg", Size(48.0, 48.0)),
+          Text("插座"),
+          Provide<SensorData>(
+            builder: (context, child, sensorData) {
+              return Switch(
+                value: sensorData.socketB,
+                onChanged: (bool val) {
+                  sensorData.changeSocketB();
+                },
+              );
+            },
+          )
+        ],
+      ),
+      _myDivision(
+        <Widget>[
+          SvgImage.asset("assets/Home/门磁.svg", Size(48.0, 48.0)),
+          Text("智能门磁"),
+          Provide<SensorData>(
+            builder: (context, child, sensorData) {
+              if (sensorData.door) {
+                return Text('状态:开');
+              }
+              return Text('状态:关');
+            },
+          )
+        ],
+      ),
+      _myDivision(
+        <Widget>[
+          SvgImage.asset("assets/Home/电视.svg", Size(48.0, 48.0)),
+          Text("电视"),
+          Provide<SensorData>(
+            builder: (context, child, sensorData) {
+              return Switch(
+                value: sensorData.socketC,
+                onChanged: (bool val) {
+                  sensorData.changeSocketC();
+                },
+              );
+            },
+          )
+        ],
+      ),
     ];
+  }
+
+  _myDivision(List<Widget> children) {
+    return Division(
+        style: StyleClass()
+          ..backgroundColor(Color.fromARGB(255, 255, 255, 255))
+          ..borderRadius(all: 10.0),
+        child: Padding(
+            padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
+            child: Column(children: children)));
   }
 }
