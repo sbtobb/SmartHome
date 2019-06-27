@@ -16,20 +16,20 @@ class NavigationBar extends StatelessWidget {
       ),
       home:
           //AppFuncBrowse(),
-          NavigationBar(),
+      NavigationBarPage(),
     );
   }
 }
 
 class NavigationBarPage extends StatefulWidget {
   @override
-  _NavigationBarPage createState() {
+  _NavigationBarPageState createState() {
     // TODO: implement createState
-    return _NavigationBarPage();
+    return _NavigationBarPageState();
   }
 }
 
-class _NavigationBarPage extends State<NavigationBarPage> {
+class _NavigationBarPageState extends State<NavigationBarPage> {
   final items = [
     BottomNavigationBarItem(
         icon: SvgImage.asset("assets/navigation/home.svg", Size(30.0, 30.0)),
