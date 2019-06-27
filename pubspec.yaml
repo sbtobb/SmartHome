@@ -29,6 +29,10 @@ dependencies:
   fluttertoast: ^2.1.1
   division: ^0.5.0
   shared_preferences: ^0.4.2
+  provide: ^1.0.2
+  flutter_spinkit: ^3.1.0
+  flutter_svg: ^0.1.1
+  modal_progress_hud: ^0.1.3
 
 dev_dependencies:
   flutter_test:
@@ -47,19 +51,15 @@ flutter:
   uses-material-design: true
 
   assets:
-      - assets/login/mima.png
-      - assets/login/yonghu.png
-      - assets/loginSuccess/home.png
-      - assets/loginSuccess/room.png
-      - assets/loginSuccess/my.png
-      - assets/loginSuccess/logo.png
-      - assets/Home/zldd.png
-      - assets/Home/diaodeng.png
-      - assets/Home/cz.png
-      - assets/Home/menci.png
-      - assets/Home/wenshidu.png
-      - assets/Home/kaisix.png
-      - assets/Home/guan.png
+      - assets/login/密码.svg
+      - assets/navigation/home.svg
+      - assets/navigation/场景管理.svg
+      - assets/navigation/用户.svg
+      - assets/Home/台灯.svg
+      - assets/Home/插座.svg
+      - assets/Home/电视.svg
+      - assets/Home/门磁.svg
+      - assets/Home/logo.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
