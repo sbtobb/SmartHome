@@ -4,6 +4,7 @@ import '../api/apis.dart';
 import '../protocol/result_data.dart';
 import '../protocol/result_bool.dart';
 import 'package:smart_home/utils/encrypt_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class ApiRepository {
@@ -26,7 +27,7 @@ class ApiRepository {
   /// 登陆
   ///
   /// 输入用户名[username] 密码[password]用于登陆系统
-  Future<ResultData> login(String username,String password) async{
+  Future<ResultBool> login(String username,String password) async{
     var result = await HttpUtils.request(
         SmartApi.user_login,
         method: HttpUtils.POST,
@@ -38,13 +39,14 @@ class ApiRepository {
     final jsonMap = json.decode(result ?? this.error_str);
     ResultData resultData = ResultData.fromJson(jsonMap);
 
-    print(resultData.code);
     if(resultData.code == "00000"){
       //登陆成功
       //解析token
       this.token = resultData.data['token'];
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString("token", this.token);
     }
-    return resultData;
+    return ResultBool.fromResultData(resultData);
   }
 
   /// 验证Token是否有效
@@ -53,7 +55,7 @@ class ApiRepository {
   /// 若[token]为空,则使用预存的token
   /// 将会返回是否成功
   Future<bool> isValidateToken([String token]) async {
-    if (token ?? this.token == null){
+    if ((token ?? this.token) == null){
       return false;
     }
     var result = await HttpUtils.request(
@@ -68,6 +70,7 @@ class ApiRepository {
       return false;
     }
     if(resultData.data["status"] == "1"){
+      this.token = token ?? this.token;
       return true;
     }
     return false;

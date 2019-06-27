@@ -20,7 +20,7 @@ class ResultBool {
     }
     resultBool.msg = ResultCode.getErrorMsg(resultData.code);
     if(resultData.data != null){
-      if(resultData.data['state'] == "1"){
+      if(resultData.data['status'] == "1"){
         resultBool.status = true;
       }else{
         resultBool.status = false;

@@ -20,7 +20,8 @@ class HttpUtils {
   static Dio dio;
 
   /// default options
-  static const String API_PREFIX = 'http://a-box.com.cn/abox/index.php/';
+//  static const String API_PREFIX = 'http://a-box.com.cn/abox/index.php/';
+  static const String API_PREFIX = 'http://192.168.100.1/abox/index.php/';
   static const int CONNECT_TIMEOUT = 10000;
   static const int RECEIVE_TIMEOUT = 3000;
 
