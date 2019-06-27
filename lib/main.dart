@@ -1,9 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
+import 'package:smart_home/data/protocol/result_bool.dart';
 import 'package:smart_home/views/navigation_bar.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:smart_home/data/repository/api_repository.dart';
+import 'package:provide/provide.dart';
+import 'package:smart_home/model/sensor_data.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() => runApp(new MyApp());
+void main() {
+  var sensorData = SensorData();
+  Providers providers = Providers();
+
+//将counter对象添加进providers
+  providers.provide(Provider<SensorData>.value(sensorData));
+
+  runApp(
+    ProviderNode(child: MyApp(), providers: providers),
+  );
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -31,9 +47,14 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   TextEditingController _pwdEditController;
   TextEditingController _userNameEditController;
+  ApiRepository apiRepository = ApiRepository.instance;
+  bool _loading = false;
+  bool _autoLogin = false;
+  String token = "";
 
   final FocusNode _userNameFocusNode = FocusNode();
   final FocusNode _pwdFocusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -41,23 +62,61 @@ class _LoginPageState extends State<LoginPage> {
     _userNameEditController = TextEditingController();
     _pwdEditController.addListener(() => setState(() => {}));
     _userNameEditController.addListener(() => setState(() => {}));
+    _loadConfig();
+  }
+
+  _loadConfig() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _autoLogin = prefs.getBool("autoLogin") ?? false;
+    if(!_autoLogin){
+      return;
+    }
+    _userNameEditController.text = prefs.getString("username") ?? "";
+    _pwdEditController.text = prefs.getString("password") ?? "";
+    token = prefs.getString("token") ?? "";
+    if(token != ""){
+      print("自动登陆token:${token}");
+      _autoLoginAction();
+    }
+  }
+  _autoLoginAction() async {
+    setState(() {
+      _loading = true;
+    });
+    bool result = await apiRepository.isValidateToken(this.token);
+    setState(() {
+      _loading = false;
+    });
+    if (result) {
+      Navigator.of(context).pushAndRemoveUntil(
+          new MaterialPageRoute(builder: (context) => new NavigationBar()),
+              (route) => route == null);
+    } else {
+      Fluttertoast.showToast(
+          msg: "登录失败,Token已失效",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIos: 3);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            _buildAccountLoginTip(),
-            _buildAccountLoginTipTo(),
-            _buildEditWidget(),
-            _buildLoginRegisterButton(),
-          ],
-        ),
-      ),
-    );
+        body: ModalProgressHUD(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  _buildAccountLoginTip(),
+                  _buildAccountLoginTipTo(),
+                  _buildEditWidget(),
+                  _buildAutoCheckBox(),
+                  _buildLoginRegisterButton(),
+                ],
+              ),
+            ),
+            inAsyncCall: _loading));
   }
 
   _buildAccountLoginTip() {
@@ -84,9 +143,30 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  _buildAutoCheckBox() {
+    return Padding(
+        padding: EdgeInsets.fromLTRB(20, 5, 0, 0),
+        child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Checkbox(
+                activeColor: Color(0xFF3498DB),
+                value: _autoLogin,
+                onChanged: (bool val) {
+                  setState(() {
+                    _autoLogin = val;
+                  });
+                },
+              ),
+              Text("自动登陆")
+            ]
+        )
+    );
+  }
+
   _buildLoginRegisterButton() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(25, 20, 20, 0),
+      padding: EdgeInsets.fromLTRB(25, 8, 20, 0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
@@ -98,19 +178,8 @@ class _LoginPageState extends State<LoginPage> {
                   border: Border.all(width: 1.0, color: Colors.lightBlue),
                   color: Colors.lightBlue),
               child: FlatButton(
-                  onPressed: (){
+                  onPressed: () {
                     _loginButtonAction();
-                    String name = _userNameEditController.text;
-                    String pwd = _pwdEditController.text;
-                    if(name == pwd){
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => LoginSuccess()));
-                    }
-                    else{
-                      Fluttertoast.showToast(msg: "登录失败",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                          timeInSecForIos: 1);
-                    }
                   },
                   child: Text(
                     "登录",
@@ -118,34 +187,38 @@ class _LoginPageState extends State<LoginPage> {
                   )),
             ),
           ),
-          SizedBox(width: 15.0),
-          Expanded(
-              child: Container(
-            height: 44,
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.0),
-                border: Border.all(width: 1.0, color: Colors.lightBlue),
-                color: Colors.lightBlue),
-            child: FlatButton(
-                onPressed: () {}, //event processing
-                child: Text(
-                  "注册",
-                  style: TextStyle(color: Colors.white),
-                )),
-          ))
         ],
       ),
     );
   }
 
   _loginButtonAction() async {
-    Response response;
-    Dio dio = new Dio();
-    String name = _userNameEditController.text;
-    String pass = _pwdEditController.text;
-    response = await dio.post("http://192.168.100.1/abox/index.php/abjhsdk/user/login", data: {"username": name, "password": pass});
-    print(pass);
-    print(response);
+    setState(() {
+      _loading = true;
+    });
+    String username = _userNameEditController.text;
+    String password = _pwdEditController.text;
+    ResultBool result = await apiRepository.login(username, password);
+    setState(() {
+      _loading = false;
+    });
+    if (result.exeResult) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setBool("autoLogin", this._autoLogin);
+      if(this._autoLogin){
+        prefs.setString("username", username);
+        prefs.setString("password", password);
+      }
+      Navigator.of(context).pushAndRemoveUntil(
+          new MaterialPageRoute(builder: (context) => new NavigationBar()),
+          (route) => route == null);
+    } else {
+      Fluttertoast.showToast(
+          msg: "登录失败",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIos: 3);
+    }
   }
 
   _buildLoginNameTextField() {
@@ -153,11 +226,9 @@ class _LoginPageState extends State<LoginPage> {
       controller: _userNameEditController,
       focusNode: _userNameFocusNode,
       decoration: InputDecoration(
-        hintText: "用户名/手机",
+        labelText: "用户名",
         border: InputBorder.none,
-        prefixIcon: Image.asset(
-          "assets/login/yonghu.png",
-        ),
+        icon: SvgImage.asset("assets/navigation/用户.svg", Size(30.0, 30.0)),
       ),
     );
   }
@@ -168,11 +239,9 @@ class _LoginPageState extends State<LoginPage> {
         focusNode: _pwdFocusNode,
         obscureText: true,
         decoration: InputDecoration(
-          hintText: "密码",
+          labelText: "密码",
           border: InputBorder.none,
-          prefixIcon: Image.asset(
-            "assets/login/mima.png",
-          ),
+          icon: SvgImage.asset("assets/login/密码.svg", Size(30.0, 30.0)),
         ));
   }
 
