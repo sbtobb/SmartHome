@@ -26,7 +26,7 @@ class ApiRepository {
   /// 登陆
   ///
   /// 输入用户名[username] 密码[password]用于登陆系统
-  Future<ResultData> login(String username,String password) async{
+  Future<ResultBool> login(String username,String password) async{
     var result = await HttpUtils.request(
         SmartApi.user_login,
         method: HttpUtils.POST,
@@ -53,7 +53,7 @@ class ApiRepository {
   /// 若[token]为空,则使用预存的token
   /// 将会返回是否成功
   Future<bool> isValidateToken([String token]) async {
-    if (token ?? this.token == null){
+    if ((token ?? this.token) == null){
       return false;
     }
     var result = await HttpUtils.request(
