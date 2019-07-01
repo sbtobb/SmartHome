@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:division/division.dart';
-import 'package:smart_home/data/protocol/result_bool.dart';
-import 'package:smart_home/data/protocol/result_data.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:smart_home/data/repository/api_repository.dart';
 import 'package:provide/provide.dart';
 import 'package:smart_home/model/sensor_data.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:smart_home/views/infrared_learn.dart';
 
 class Home extends StatelessWidget {
   @override
@@ -29,6 +29,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     this._context = context;
+    Provide.value<SensorData>(context).refreshInfraredList();
     return Scaffold(
         backgroundColor: Color.fromARGB(50, 200, 200, 200),
         body: Column(
@@ -48,13 +49,17 @@ class HomePage extends StatelessWidget {
     return Container(
         padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
         child: Division(
+            gesture: GestureClass()
+              ..onDoubleTap(
+                  () => Provide.value<SensorData>(_context).refreshTH()),
             style: StyleClass()
               ..width(300)
               ..height(150)
               ..elevation(50.0)
-              ..backgroundImage(path: "assets/Home/logo.png", fit: BoxFit.fill)
+              ..background.image(path: "assets/Home/logo.png", fit: BoxFit.fill)
               ..borderRadius(all: 10.0)
-              ..align('top'),
+              ..elevation(10, color: rgb(150, 150, 150))
+              ..alignment.topCenter(),
             child: Row(children: <Widget>[_weather(), _temperature()])));
   }
 
@@ -99,24 +104,44 @@ class HomePage extends StatelessWidget {
 
   _equipment() {
     return Container(
-        padding: EdgeInsets.fromLTRB(30, 25, 0, 0),
-        child: Text("设备",
-            style: TextStyle(fontSize: 20.0, color: Colors.black54)));
+        padding: EdgeInsets.fromLTRB(30, 25, 35, 0),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+                child: Text("设备",
+                    style:
+                        TextStyle(fontSize: 20.0, color: Color(0xFF515151)))),
+            Division(
+              style: StyleClass()
+                ..background.hex("#EEEEEE")
+                ..borderRadius(all: 50),
+              gesture: GestureClass()
+                ..onTap(() {
+                  Navigator.of(_context).push(
+                      new MaterialPageRoute(builder: (context) => new InfraredLearn()));
+                  print("123123123");
+                }),
+              child: SvgImage.asset("assets/Home/添加.svg", Size(30.0, 30.0)),
+            )
+          ],
+        ));
   }
 
   _snow() {
     return Expanded(
         flex: 1,
         child: Container(
-          padding: EdgeInsets.fromLTRB(25, 8, 25, 0),
-          height: 250,
-          child: GridView.count(
-              crossAxisCount: 2,
-              mainAxisSpacing: 10.0,
-              crossAxisSpacing: 10.0,
-              childAspectRatio: 1.18,
-              children: _gridViews()),
-        ));
+            padding: EdgeInsets.fromLTRB(25, 8, 25, 0),
+            child: Provide<SensorData>(builder: (context, child, sensorData) {
+              List<Widget> subWidgetList = _gridViews();
+              subWidgetList.addAll(_infraredDivision(sensorData.infraredList));
+              return GridView.count(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 10.0,
+                  crossAxisSpacing: 10.0,
+                  childAspectRatio: 1.18,
+                  children: subWidgetList);
+            })));
   }
 
   _gridViews() {
@@ -153,19 +178,29 @@ class HomePage extends StatelessWidget {
           )
         ],
       ),
-      _myDivision(
-        <Widget>[
-          SvgImage.asset("assets/Home/门磁.svg", Size(48.0, 48.0)),
-          Text("智能门磁"),
-          Provide<SensorData>(
-            builder: (context, child, sensorData) {
-              if (sensorData.door) {
-                return Text('状态:开');
-              }
-              return Text('状态:关');
-            },
-          )
-        ],
+      Division(
+        gesture: GestureClass()
+          ..onDoubleTap(
+              () => Provide.value<SensorData>(_context).refreshDoor()),
+        style: StyleClass()
+          ..background.hex("#FFFFFF")
+          ..ripple(true)
+          ..elevation(10, color: rgb(150, 150, 150))
+          ..borderRadius(all: 10.0),
+        child: Padding(
+            padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
+            child: Column(children: <Widget>[
+              SvgImage.asset("assets/Home/门磁.svg", Size(48.0, 48.0)),
+              Text("智能门磁\n"),
+              Provide<SensorData>(
+                builder: (context, child, sensorData) {
+                  if (sensorData.door) {
+                    return Text('状态:开');
+                  }
+                  return Text('状态:关');
+                },
+              )
+            ])),
       ),
       _myDivision(
         <Widget>[
@@ -189,10 +224,40 @@ class HomePage extends StatelessWidget {
   _myDivision(List<Widget> children) {
     return Division(
         style: StyleClass()
-          ..backgroundColor(Color.fromARGB(255, 255, 255, 255))
-          ..borderRadius(all: 10.0),
+          ..background.hex("#FFFFFF")
+          ..borderRadius(all: 10.0)
+          ..elevation(10, color: rgb(150, 150, 150)),
         child: Padding(
             padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
             child: Column(children: children)));
+  }
+
+  List<Widget> _infraredDivision(List<Map<String, dynamic>> gridList) {
+    return List<Widget>.generate(gridList.length, (index) {
+      return _infraredItem(gridList[index]['name'], gridList[index]['key']);
+    });
+  }
+
+  Widget _infraredItem(String name, String key) {
+    return Division(
+        gesture: GestureClass()
+          ..onTap(() {
+            apiRepository.sendIr("red", key);
+            Fluttertoast.showToast(
+                msg: "发送红外成功",
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIos: 3);
+          }),
+        style: StyleClass()
+          ..background.hex("#FFFFFF")
+          ..elevation(10, color: rgb(150, 150, 150))
+          ..borderRadius(all: 10.0),
+        child: Padding(
+            padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
+            child: Column(children: [
+              SvgImage.asset("assets/Home/遥控.svg", Size(48.0, 48.0)),
+              Text("\n$name"),
+            ])));
   }
 }

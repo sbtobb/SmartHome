@@ -3,6 +3,8 @@ import 'package:smart_home/data/protocol/result_data.dart';
 import 'package:smart_home/data/protocol/result_bool.dart';
 import 'package:smart_home/data/repository/api_repository.dart';
 import 'package:smart_home/data/api/apis.dart';
+import 'package:smart_home/model/infrared.dart';
+import 'package:smart_home/db/database_helper.dart';
 
 class SensorData with ChangeNotifier {
   String _temperature = "20.0";
@@ -11,6 +13,7 @@ class SensorData with ChangeNotifier {
   bool _socketB = false;
   bool _socketC = false;
   bool _door = false;
+  List<Map<String, dynamic>> _infraredList = [];
 
   String get temperature => _temperature;
   String get humidity => _humidity;
@@ -19,6 +22,10 @@ class SensorData with ChangeNotifier {
   bool get socketC => _socketC;
   bool get door => _door;
 
+  List<Map<String, dynamic>> get infraredList {
+    return _infraredList;
+  }
+
   ApiRepository apiRepository = ApiRepository.instance;
 
   initState() async {
@@ -26,6 +33,13 @@ class SensorData with ChangeNotifier {
     await refreshSocketA();
     await refreshSocketB();
     await refreshDoor();
+    await refreshInfraredList();
+  }
+
+  refreshInfraredList() async {
+    final dbHelper = DatabaseHelper.instance;
+    this._infraredList = await dbHelper.queryAllRows();
+    notifyListeners();
   }
 
   /// 刷新温湿度数据

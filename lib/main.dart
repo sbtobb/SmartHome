@@ -8,6 +8,8 @@ import 'package:smart_home/model/sensor_data.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smart_home/db/database_helper.dart';
+import 'package:smart_home/model/infrared.dart';
 
 void main() {
   var sensorData = SensorData();
@@ -55,6 +57,8 @@ class _LoginPageState extends State<LoginPage> {
   final FocusNode _userNameFocusNode = FocusNode();
   final FocusNode _pwdFocusNode = FocusNode();
 
+  final dbHelper = DatabaseHelper.instance;
+
   @override
   void initState() {
     super.initState();
@@ -68,17 +72,18 @@ class _LoginPageState extends State<LoginPage> {
   _loadConfig() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _autoLogin = prefs.getBool("autoLogin") ?? false;
-    if(!_autoLogin){
+    if (!_autoLogin) {
       return;
     }
     _userNameEditController.text = prefs.getString("username") ?? "";
     _pwdEditController.text = prefs.getString("password") ?? "";
     token = prefs.getString("token") ?? "";
-    if(token != ""){
+    if (token != "") {
       print("自动登陆token:${token}");
       _autoLoginAction();
     }
   }
+
   _autoLoginAction() async {
     setState(() {
       _loading = true;
@@ -90,7 +95,7 @@ class _LoginPageState extends State<LoginPage> {
     if (result) {
       Navigator.of(context).pushAndRemoveUntil(
           new MaterialPageRoute(builder: (context) => new NavigationBar()),
-              (route) => route == null);
+          (route) => route == null);
     } else {
       Fluttertoast.showToast(
           msg: "登录失败,Token已失效",
@@ -159,9 +164,7 @@ class _LoginPageState extends State<LoginPage> {
                 },
               ),
               Text("自动登陆")
-            ]
-        )
-    );
+            ]));
   }
 
   _buildLoginRegisterButton() {
@@ -186,7 +189,7 @@ class _LoginPageState extends State<LoginPage> {
                     style: TextStyle(color: Colors.white),
                   )),
             ),
-          ),
+          )
         ],
       ),
     );
@@ -205,7 +208,7 @@ class _LoginPageState extends State<LoginPage> {
     if (result.exeResult) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setBool("autoLogin", this._autoLogin);
-      if(this._autoLogin){
+      if (this._autoLogin) {
         prefs.setString("username", username);
         prefs.setString("password", password);
       }
