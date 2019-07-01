@@ -23,7 +23,7 @@ class HttpUtils {
 //  static const String API_PREFIX = 'http://a-box.com.cn/abox/index.php/';
   static const String API_PREFIX = 'http://192.168.100.1/abox/index.php/';
   static const int CONNECT_TIMEOUT = 10000;
-  static const int RECEIVE_TIMEOUT = 3000;
+  static const int RECEIVE_TIMEOUT = 10000;
 
   /// http request methods
   static const String GET = 'get';
