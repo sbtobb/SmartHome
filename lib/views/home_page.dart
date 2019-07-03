@@ -119,7 +119,6 @@ class HomePage extends StatelessWidget {
                 ..onTap(() {
                   Navigator.of(_context).push(
                       new MaterialPageRoute(builder: (context) => new InfraredLearn()));
-                  print("123123123");
                 }),
               child: SvgImage.asset("assets/Home/添加.svg", Size(30.0, 30.0)),
             )
@@ -139,7 +138,7 @@ class HomePage extends StatelessWidget {
                   crossAxisCount: 2,
                   mainAxisSpacing: 10.0,
                   crossAxisSpacing: 10.0,
-                  childAspectRatio: 1.18,
+                  childAspectRatio: 1.1,
                   children: subWidgetList);
             })));
   }
@@ -164,8 +163,8 @@ class HomePage extends StatelessWidget {
       ),
       _myDivision(
         <Widget>[
-          SvgImage.asset("assets/Home/插座.svg", Size(48.0, 48.0)),
-          Text("插座"),
+          SvgImage.asset("assets/Home/除湿器.svg", Size(48.0, 48.0)),
+          Text("除湿器"),
           Provide<SensorData>(
             builder: (context, child, sensorData) {
               return Switch(
