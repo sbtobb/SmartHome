@@ -46,10 +46,11 @@ class SensorData with ChangeNotifier {
   refreshTH() async {
     ResultData resultData =
         await apiRepository.getThStatus(SmartApi.temperName);
-    print(resultData);
+    if (resultData.data == null) {
+      return;
+    }
     _temperature = resultData.data['temperature'] ?? "20.0";
     _humidity = resultData.data['humidity'] ?? "20.0";
-    print(_temperature);
     notifyListeners();
   }
 
@@ -97,7 +98,7 @@ class SensorData with ChangeNotifier {
     }
   }
 
-  /// 刷新插座B
+  /// 刷新插座C
   refreshSocketC() async {
     ResultBool resultBool =
         await apiRepository.getSockStatus(SmartApi.socketCName);
