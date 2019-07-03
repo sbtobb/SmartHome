@@ -36,23 +36,27 @@ flutter run
 </div>
 
 ## Environment
-> cupertino_icons: 0.1.2
-> dio: 2.1.0
-> crypto: 2.0.6
-> convert: 2.1.1
-> fluttertoast: 2.1.1
-> division: 0.7.0
-> shared_preferences: 0.4.2
-> provide: 1.0.2
-> flutter_spinkit: 3.1.0
-> flutter_svg: 0.1.1
-> modal_progress_hud: 0.1.3
-> sqflite: 1.1.6
-> path_provider: any
+- Flutter:1.5
+- AndroidStudio:3.1.4
 
 ## Reference
-[flutter-io.cn](https://flutter-io.cn)
-[设计稿参考](https://www.ui.cn/detail/470980.html)
+* [flutter-io.cn](https://flutter-io.cn)
+* [设计稿参考](https://www.ui.cn/detail/470980.html)
+
+## License
+Copyright 2019 CyouGuang
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 
 
