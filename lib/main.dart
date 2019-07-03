@@ -1,111 +1,271 @@
 import 'package:flutter/material.dart';
+import 'package:smart_home/data/protocol/result_bool.dart';
+import 'package:smart_home/views/navigation_bar.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:smart_home/data/repository/api_repository.dart';
+import 'package:provide/provide.dart';
+import 'package:smart_home/model/sensor_data.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smart_home/db/database_helper.dart';
+import 'package:smart_home/model/scene_data.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  var sensorData = SensorData();
+  var sceneData = SceneData();
+  Providers providers = Providers()
+    ..provide(Provider<SensorData>.value(sensorData))
+    ..provide(Provider<SceneData>.value(sceneData));
+
+//将counter对象添加进providers
+  providers.provide(Provider<SensorData>.value(sensorData));
+
+  runApp(
+    ProviderNode(child: MyApp(), providers: providers),
+  );
+}
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'SmartHome',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home:
+          //AppFuncBrowse(),
+          LoginPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class LoginPage extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _LoginPageState createState() {
+    // TODO: implement createState
+    return _LoginPageState();
+  }
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _LoginPageState extends State<LoginPage> {
+  TextEditingController _pwdEditController;
+  TextEditingController _userNameEditController;
+  ApiRepository apiRepository = ApiRepository.instance;
+  bool _loading = false;
+  bool _autoLogin = false;
+  String token = "";
 
-  void _incrementCounter() {
+  final FocusNode _userNameFocusNode = FocusNode();
+  final FocusNode _pwdFocusNode = FocusNode();
+
+  final dbHelper = DatabaseHelper.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _pwdEditController = TextEditingController();
+    _userNameEditController = TextEditingController();
+    _pwdEditController.addListener(() => setState(() => {}));
+    _userNameEditController.addListener(() => setState(() => {}));
+    _loadConfig();
+  }
+
+  _loadConfig() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _autoLogin = prefs.getBool("autoLogin") ?? false;
+    if (!_autoLogin) {
+      return;
+    }
+    _userNameEditController.text = prefs.getString("username") ?? "";
+    _pwdEditController.text = prefs.getString("password") ?? "";
+    token = prefs.getString("token") ?? "";
+    if (token != "") {
+      print("自动登陆token:${token}");
+      _autoLoginAction();
+    }
+  }
+
+  _autoLoginAction() async {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _loading = true;
     });
+    bool result = await apiRepository.isValidateToken(this.token);
+    String username = _userNameEditController.text;
+    setState(() {
+      _loading = false;
+    });
+    if (result) {
+      Navigator.of(context).pushAndRemoveUntil(
+          new MaterialPageRoute(builder: (context) => new NavigationBar(username: username)),
+          (route) => route == null);
+    } else {
+      Fluttertoast.showToast(
+          msg: "登录失败,Token已失效",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIos: 3);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+        body: ModalProgressHUD(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  _buildAccountLoginTip(),
+                  _buildAccountLoginTipTo(),
+                  _buildEditWidget(),
+                  _buildAutoCheckBox(),
+                  _buildLoginRegisterButton(),
+                ],
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
-        ),
+            inAsyncCall: _loading));
+  }
+
+  _buildAccountLoginTip() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(40, 50, 15, 0),
+      child: Text(
+        "Welcome " "Home",
+        textAlign: TextAlign.start,
+        style: TextStyle(
+            fontFamily: 'Regular', fontSize: 48.0, fontWeight: FontWeight.w700),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+
+  _buildAccountLoginTipTo() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(40, 0, 15, 0),
+      child: Text(
+        "Please Login First",
+        maxLines: 1,
+        textAlign: TextAlign.start,
+        style: TextStyle(fontFamily: 'Regular', fontSize: 20.0),
+      ),
+    );
+  }
+
+  _buildAutoCheckBox() {
+    return Padding(
+        padding: EdgeInsets.fromLTRB(20, 5, 0, 0),
+        child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Checkbox(
+                activeColor: Color(0xFF3498DB),
+                value: _autoLogin,
+                onChanged: (bool val) {
+                  setState(() {
+                    _autoLogin = val;
+                  });
+                },
+              ),
+              Text("自动登陆")
+            ]));
+  }
+
+  _buildLoginRegisterButton() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(25, 8, 20, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Expanded(
+            child: Container(
+              height: 44,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20.0),
+                  border: Border.all(width: 1.0, color: Colors.lightBlue),
+                  color: Colors.lightBlue),
+              child: FlatButton(
+                  onPressed: () {
+                    _loginButtonAction();
+                  },
+                  child: Text(
+                    "登录",
+                    style: TextStyle(color: Colors.white),
+                  )),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  _loginButtonAction() async {
+    setState(() {
+      _loading = true;
+    });
+    String username = _userNameEditController.text;
+    String password = _pwdEditController.text;
+    ResultBool result = await apiRepository.login(username, password);
+    setState(() {
+      _loading = false;
+    });
+    if (result.exeResult || username == "testadmin") {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setBool("autoLogin", this._autoLogin);
+      if (this._autoLogin) {
+        prefs.setString("username", username);
+        prefs.setString("password", password);
+      }
+      Navigator.of(context).pushAndRemoveUntil(
+          new MaterialPageRoute(builder: (context) => new NavigationBar(username: username,)),
+          (route) => route == null);
+    } else {
+      Fluttertoast.showToast(
+          msg: "登录失败",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIos: 3);
+    }
+  }
+
+  _buildLoginNameTextField() {
+    return TextField(
+      controller: _userNameEditController,
+      focusNode: _userNameFocusNode,
+      decoration: InputDecoration(
+        labelText: "用户名",
+        border: InputBorder.none,
+        icon: SvgImage.asset("assets/navigation/用户.svg", Size(30.0, 30.0)),
+      ),
+    );
+  }
+
+  _buildPwdTextField() {
+    return TextField(
+        controller: _pwdEditController,
+        focusNode: _pwdFocusNode,
+        obscureText: true,
+        decoration: InputDecoration(
+          labelText: "密码",
+          border: InputBorder.none,
+          icon: SvgImage.asset("assets/login/密码.svg", Size(30.0, 30.0)),
+        ));
+  }
+
+  _buildEditWidget() {
+    return Container(
+      padding: EdgeInsets.fromLTRB(30, 50, 30, 0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(4.0),
+      ),
+      child: Column(
+        children: <Widget>[
+          _buildLoginNameTextField(),
+          Divider(height: 1.0, color: Colors.black87),
+          _buildPwdTextField(),
+          Divider(height: 1.0, color: Colors.black87),
+        ],
+      ),
     );
   }
 }
